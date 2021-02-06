@@ -122,10 +122,14 @@ class Video(Resource):
         This function doesn't return any JSON serializable data back
         to the user in case of a success.
         """
-        pass
-        # abort_if_video_id_doesnt_exist(video_id)
-        # del videos[video_id]
-        # return '', 204
+        result = VideoModel.query.filter_by(_id=video_id).first()
+        if not result:
+            abort(404, message="Cannot delete because video with the given ID not found...")
+        
+        db.session.delete(result)
+        db.session.commit()
+        
+        return '', 204
 
 
 # Register resources and connect it to their respective URL endpoints

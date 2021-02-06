@@ -98,8 +98,57 @@ class MemberRecord(Resource):
         4. DELETE - Delete an existing member.
     """
     pass
+    def get(self, user_name):
+        """Handles GET requests to the resource and return HTTP code 200
+        on a successful completion of a request.
 
-records = db.session.query(Member).all()
+        The given name should be identical to the name of the potential
+        member that could exist in the database. This means that "Name"
+        and "NaMe" are treated as two different values because their cases
+        are different, even though they have the same value.
+
+        Return a JSON response containing details about the specified user. 
+        If multiple members with the same name exists, return with info
+        only about the first matching member that was found.
+
+        Abort handling GET requests and return 404 if no member with
+        the specified name is found along with an error message.
+        """
+        pass
+
+    def put(self, user_id):
+        """Handles PUT requests at the specified URL and returns status
+        code 200 if an already existing member has been overwritten 
+        if no member exists with the given id, return code 201 to signal
+        to the user that a new member has been created with the given ID.
+
+        Along with the status code, return a JSON response with details
+        about the new member (which has either replaced or have been newly
+        created).
+        """
+        pass
+
+    def patch(self, user_id):
+        """Handles PATCH requests for the specified resource and returns
+        status code 200 to signal that an existing member's information
+        has been updated with the new values sent in by the user as JSON.
+
+        Abort handling of the request if no existing member is found with
+        the given ID and thus, return 404 along with an error message.
+        """
+        pass
+
+    def delete(self):
+        """Handles DELETE requests to the specified resource and returns
+        status code 204 to signal that the member with the given ID has been
+        successfully removed from the database.
+
+        No additional content/data (like JSON) will be sent back to the user.
+
+        Abort handling of the request if no member with the given ID is found
+        and return error code 404 with a message.
+        """
+        pass 
 
 
 # Get all the Members

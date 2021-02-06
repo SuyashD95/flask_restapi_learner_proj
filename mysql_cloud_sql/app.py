@@ -38,15 +38,69 @@ Member = Base.classes.members
 # NOTE: We can't use query direcly on the classes mapped to tables in
 #       an existing database. To run queries, we need to use the
 #       query(mapped_table) on the db.session object.
-# Add a new member
-# new_member = Member(name="Vishy Anand", email="thevish@chess.com")
-# db.session.add(new_member)
-# db.session.commit()
 
-# NOTE: We can't use query direcly on the classes mapped to tables in
-# an existing database. To run queries, we need to use the query(mapped_table)
-# on the db.session object.
+
+class MemberEntity(Resource):
+    """Resource class to handle requests made to the 'members' table 
+    in the database at the specified URLs:
+        1. /members/all
+        2. /members/new
+
+    Handles the following requests at the following endpoints:
+        1. GET  - Get all the members.
+        2. POST - Create a new member.
+    """
+    pass
+    def get(self):
+        """Handles GET requests to the resource.
+
+        Return code 200 along with a JSON response containing details
+        about all the members stored in the database.
+
+        Abort handling GET requests and return 404 if no members
+        exist in the database along with an error message.
+        """
+        # records = db.session.query(Member).all()
+
+        # Get all the Members
+        # for record in records:
+        # print(f'Name: {record.name}, Email: {record.email}')
+        pass
+
+    def post(self):
+        """Handles POST requests to the resource.
+
+        Returns status code 201 with a JSON response containing information
+        about the newly created member.
+
+        Aborts the request if a member with the given ID already exists
+        and return a 409 error with a message.
+        """
+        # Add a new member
+        # new_member = Member(name="Vishy Anand", email="thevish@chess.com")
+        # db.session.add(new_member)
+        # db.session.commit()
+        pass
+
+
+class MemberRecord(Resource):
+    """Resource class to handle requests made to a specific record
+    of the 'members' table of the database at the specified URLs: 
+        1. /members/{user_id}
+        2. /members/{user_name}
+    
+    Handles the following requests at the following endpoints:
+        
+        1. GET    - Get a member by name.
+        2. PATCH  - Update an existing member.
+        3. PUT    - Overwriting an existing member and if it doesn't exist, 
+                    create a new member at the specified ID.
+        4. DELETE - Delete an existing member.
+    """
+    pass
+
 records = db.session.query(Member).all()
+
 
 # Get all the Members
 for record in records:

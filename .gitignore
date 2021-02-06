@@ -1,3 +1,6 @@
+# Code Editor-specific files/directories
+.vscode/
+
 # Database files
 *.db
 

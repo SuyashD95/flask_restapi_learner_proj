@@ -52,7 +52,7 @@ class MemberEntity(Resource):
         2. POST   - Create a new member.
         3. DELETE - Delete all the members.
     """
-    pass
+    
     def get(self):
         """Handles GET requests to the resource.
 
@@ -111,7 +111,7 @@ class MemberRecord(Resource):
                     create a new member at the specified ID.
         4. DELETE - Delete an existing member.
     """
-    pass
+
     def get(self, user_name):
         """Handles GET requests to the resource and return HTTP code 200
         on a successful completion of a request.

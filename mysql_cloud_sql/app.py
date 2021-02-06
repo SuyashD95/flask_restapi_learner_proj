@@ -45,10 +45,12 @@ class MemberEntity(Resource):
     in the database at the specified URLs:
         1. /members/all
         2. /members/new
+        3. /members/delete
 
     Handles the following requests at the following endpoints:
-        1. GET  - Get all the members.
-        2. POST - Create a new member.
+        1. GET    - Get all the members.
+        2. POST   - Create a new member.
+        3. DELETE - Delete all the members.
     """
     pass
     def get(self):
@@ -80,6 +82,18 @@ class MemberEntity(Resource):
         # new_member = Member(name="Vishy Anand", email="thevish@chess.com")
         # db.session.add(new_member)
         # db.session.commit()
+        pass
+
+    def delete(self):
+        """Handles DELETE requests to the specified resource and returns
+        status code 204 to signal that all the members have been
+        successfully removed from the database.
+
+        No additional content/data (like JSON) will be sent back to the user.
+
+        Abort handling the request if no member exists in the database
+        and return error code 404 with a message.
+        """
         pass
 
 
@@ -145,7 +159,7 @@ class MemberRecord(Resource):
 
         No additional content/data (like JSON) will be sent back to the user.
 
-        Abort handling of the request if no member with the given ID is found
+        Abort handling the request if no member with the given ID is found
         and return error code 404 with a message.
         """
         pass 
@@ -153,10 +167,11 @@ class MemberRecord(Resource):
 
 # Adding member table related resource to the API and specifying their endpoints
 api.add_resource(Member, '/members/all', endpoint='get_all_members')
-api.add_resource(Member, '/members/<string:user_name>', endpoint='get_member_by_name')
 api.add_resource(Member, '/members/new', endpoint='create_new_member')
+api.add_resource(Member, '/members/delete', endpoint='delete_all_members')
+api.add_resource(Member, '/members/<string:user_name>', endpoint='get_member_by_name')
+api.add_resource(Member, '/members/<int:user_id>/replace', endpoint='overwrite_existing_member')
 api.add_resource(Member, '/members/<int:user_id>/update', endpoint='update_existing_member')
-api.add_resource(Member, '/members/<int:user_id>/overwrite', endpoint='overwrite_existing_member')
 api.add_resource(Member, '/members/<int:user_id>/delete', endpoint='delete_existing_member')
 
 if __name__ == '__main__':

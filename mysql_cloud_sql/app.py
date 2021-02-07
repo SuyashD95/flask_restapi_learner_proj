@@ -166,13 +166,13 @@ class MemberRecord(Resource):
 
 
 # Adding member table related resource to the API and specifying their endpoints
-api.add_resource(Member, '/members/all', endpoint='get_all_members')
-api.add_resource(Member, '/members/new', endpoint='create_new_member')
-api.add_resource(Member, '/members/delete', endpoint='delete_all_members')
-api.add_resource(Member, '/members/<string:user_name>', endpoint='get_member_by_name')
-api.add_resource(Member, '/members/<int:user_id>/replace', endpoint='overwrite_existing_member')
-api.add_resource(Member, '/members/<int:user_id>/update', endpoint='update_existing_member')
-api.add_resource(Member, '/members/<int:user_id>/delete', endpoint='delete_existing_member')
+api.add_resource(MemberEntity, '/members/all', endpoint='get_all_members')
+api.add_resource(MemberEntity, '/members/new', endpoint='create_new_member')
+api.add_resource(MemberEntity, '/members/delete', endpoint='delete_all_members')
+api.add_resource(MemberRecord, '/members/<string:user_name>', endpoint='get_member_by_name')
+api.add_resource(MemberRecord, '/members/<int:user_id>/replace', endpoint='overwrite_existing_member')
+api.add_resource(MemberRecord, '/members/<int:user_id>/update', endpoint='update_existing_member')
+api.add_resource(MemberRecord, '/members/<int:user_id>/delete', endpoint='delete_existing_member')
 
 if __name__ == '__main__':
     app.run(debug=True)

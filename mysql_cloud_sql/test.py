@@ -43,7 +43,7 @@ response = requests.post(f'{BASE_URL}{endpoint}', data=valid_data)
 print(pprint_json(response))
 input()
 
-# Testing PUT request of MemberEntity
+# Testing PUT request of MemberRecord
 endpoint = 'members/20/replace'
 # Bad Request (400) Error
 illegal_data = {'nam3': 'Illegal parameter name', 'email': 'This is valid'}
@@ -61,14 +61,14 @@ response = requests.put(f'{BASE_URL}{endpoint}', data=updated_data)
 print(pprint_json(response))
 input()
 
-# Testing PUT request of MemberEntity
+# Testing PATCH request of MemberRecord
 endpoint = 'members/20/update'
 # Bad Request (400) Error
 illegal_data = {'name': 'A valid name', 'email': 'A valid email', 'extra_arg': 'This is invalid'}
 response = requests.patch(f'{BASE_URL}{endpoint}', data=illegal_data)
 print(pprint_json(response))
 input()
-# Status OK (200) Success
+# Conflict (409) Error
 unreachable_endpoint = '/members/100/update'
 correct_data = {'name': 'Mouse'}
 response = requests.patch(f'{BASE_URL}{unreachable_endpoint}', data=correct_data)

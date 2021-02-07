@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 from flask import Flask
-from flask_restful import Api, Resource
+from flask_restful import Api, Resource, abort
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.automap import automap_base
 
@@ -62,12 +62,19 @@ class MemberEntity(Resource):
         Abort handling GET requests and return 404 if no members
         exist in the database along with an error message.
         """
-        # records = db.session.query(Member).all()
+        result = db.session.query(Member).all()
 
-        # Get all the Members
-        # for record in records:
-        # print(f'Name: {record.name}, Email: {record.email}')
-        pass
+        if not result:
+            abort(404, error_code=404, error_msg='No member exist in the database')
+
+        members = {}
+        for record in result:
+            members[record._id] = {
+                'name': record.name, 
+                'email': record.email
+            }
+
+        return [members], 200
 
     def post(self):
         """Handles POST requests to the resource.

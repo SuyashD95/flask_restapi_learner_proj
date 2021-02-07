@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 from flask import Flask
-from flask_restful import Api, Resource, abort, fields, marshal_with
+from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.automap import automap_base
 
@@ -39,12 +39,19 @@ Member = Base.classes.members
 #       an existing database. To run queries, we need to use the
 #       query(mapped_table) on the db.session object.
 
+# Parse requests for valid JSON objects required to pass data related
+# to a single Member record.
+record_parser = reqparse.RequestParser()
+record_parser.add_argument('name', type=str, help='Required. Name of the new member', required=True)
+record_parser.add_argument('email', type=str, help='Required. Email ID of the new member', required=True)
+
 # Resource Fields to define the format to serialize a member object into JSON
 record_fields = {
     '_id': fields.Integer,
     'name': fields.String,
     'email': fields.String
 }
+
 
 class MemberEntity(Resource):
     """Resource class to handle requests made to the 'members' table 
@@ -82,20 +89,33 @@ class MemberEntity(Resource):
 
         return [members], 200
 
+    @marshal_with(record_fields)
     def post(self):
         """Handles POST requests to the resource.
 
         Returns status code 201 with a JSON response containing information
         about the newly created member.
 
-        Aborts the request if a member with the given ID already exists
-        and return a 409 error with a message.
+        Also, if the required data is not passed in a specified format, return
+        a 400 error, along with some information about the problem with the given
+        data as an error message.
+
+        Aborts the request if a member with the given name or email ID already exists
+        and thus, return a 409 error with a message.
         """
-        # Add a new member
-        # new_member = Member(name="Vishy Anand", email="thevish@chess.com")
-        # db.session.add(new_member)
-        # db.session.commit()
-        pass
+        new_member_args = record_parser.parse_args(strict=True)
+
+        name_record = db.session.query(Member).filter_by(name=new_member_args['name']).first()
+        email_record = db.session.query(Member).filter_by(name=new_member_args['email']).first()
+        if name_record or email_record:
+            abort(409, error_code=409, error_msg='Cannot create a new member because a member with the given name/email already exists.')
+        
+
+        new_member = Member(name=new_member_args['name'], email=new_member_args['email'])
+        db.session.add(new_member)
+        db.session.commit()
+        
+        return new_member, 201
 
     def delete(self):
         """Handles DELETE requests to the specified resource and returns

@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 from flask import Flask
-from flask_restful import Api, Resource
+from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.automap import automap_base
 
@@ -39,18 +39,39 @@ Member = Base.classes.members
 #       an existing database. To run queries, we need to use the
 #       query(mapped_table) on the db.session object.
 
+# Parse the arguments sent to POST & PUT requests for valid JSON objects
+# required to pass data related to a single Member record.
+record_parser_for_post_put = reqparse.RequestParser()
+record_parser_for_post_put.add_argument('name', type=str, help='Required. Name of the new member', required=True)
+record_parser_for_post_put.add_argument('email', type=str, help='Required. Email ID of the new member', required=True)
+
+# Parse the arguments sent to PATCH requests for valid JSON objects
+# required to pass data related to a single Member record.
+record_parser_for_patch = reqparse.RequestParser()
+record_parser_for_patch.add_argument('name', type=str, help='Name of the new member')
+record_parser_for_patch.add_argument('email', type=str, help='Email ID of the new member')
+
+# Resource Fields to define the format to serialize a member object into JSON
+record_fields = {
+    '_id': fields.Integer,
+    'name': fields.String,
+    'email': fields.String
+}
+
 
 class MemberEntity(Resource):
     """Resource class to handle requests made to the 'members' table 
     in the database at the specified URLs:
         1. /members/all
         2. /members/new
+        3. /members/delete
 
     Handles the following requests at the following endpoints:
-        1. GET  - Get all the members.
-        2. POST - Create a new member.
+        1. GET    - Get all the members.
+        2. POST   - Create a new member.
+        3. DELETE - Delete all the members.
     """
-    pass
+    
     def get(self):
         """Handles GET requests to the resource.
 
@@ -60,34 +81,78 @@ class MemberEntity(Resource):
         Abort handling GET requests and return 404 if no members
         exist in the database along with an error message.
         """
-        # records = db.session.query(Member).all()
+        result = db.session.query(Member).all()
 
-        # Get all the Members
-        # for record in records:
-        # print(f'Name: {record.name}, Email: {record.email}')
-        pass
+        if not result:
+            abort(404, error_code=404, error_msg='No member exist in the database')
 
+        members = {}
+        for record in result:
+            members[record._id] = {
+                'name': record.name, 
+                'email': record.email
+            }
+
+        return [members], 200
+
+    @marshal_with(record_fields)
     def post(self):
         """Handles POST requests to the resource.
 
         Returns status code 201 with a JSON response containing information
         about the newly created member.
 
-        Aborts the request if a member with the given ID already exists
-        and return a 409 error with a message.
+        Also, if the required data is not passed in a specified format, return
+        a 400 error, along with some information about the problem with the given
+        data as an error message.
+
+        Aborts the request if a member with the given name or email ID already exists
+        and thus, return a 409 error with a message.
         """
-        # Add a new member
-        # new_member = Member(name="Vishy Anand", email="thevish@chess.com")
-        # db.session.add(new_member)
-        # db.session.commit()
-        pass
+        new_member_args = record_parser_for_post_put.parse_args(strict=True)
+
+        name_record = db.session.query(Member).filter_by(name=new_member_args['name']).first()
+        email_record = db.session.query(Member).filter_by(name=new_member_args['email']).first()
+        if name_record or email_record:
+            abort(409, error_code=409, error_msg='Cannot create a new member because a member with the given name/email already exists.')
+        
+
+        new_member = Member(name=new_member_args['name'], email=new_member_args['email'])
+        db.session.add(new_member)
+        db.session.commit()
+        
+        return new_member, 201
+
+    def delete(self):
+        """Handles DELETE requests to the specified resource and returns
+        status code 204 to signal that all the members have been
+        successfully removed from the database.
+
+        No additional content/data (like JSON) will be sent back to the user.
+
+        Abort handling the request if no member exists in the database
+        and return error code 404 with a message.
+        """
+        records_to_delete = db.session.query(Member).all()
+
+        if not records_to_delete:
+            abort(404, error_code=404, 
+                error_msg='Cannot delete because no members exist in the database'
+            )
+        
+        db.session.query(Member).delete()
+        db.session.commit()
+
+        return '', 204
 
 
 class MemberRecord(Resource):
     """Resource class to handle requests made to a specific record
     of the 'members' table of the database at the specified URLs: 
-        1. /members/{user_id}
-        2. /members/{user_name}
+        1. /members/{user_name}
+        2. /members/{user_id}/replace
+        3. /members/{user_id}/update
+        4. /members/{user_id}/delete
     
     Handles the following requests at the following endpoints:
         
@@ -97,7 +162,8 @@ class MemberRecord(Resource):
                     create a new member at the specified ID.
         4. DELETE - Delete an existing member.
     """
-    pass
+
+    @marshal_with(record_fields)
     def get(self, user_name):
         """Handles GET requests to the resource and return HTTP code 200
         on a successful completion of a request.
@@ -114,8 +180,16 @@ class MemberRecord(Resource):
         Abort handling GET requests and return 404 if no member with
         the specified name is found along with an error message.
         """
-        pass
+        record = db.session.query(Member).filter_by(name=user_name).first()
 
+        if not record:
+            abort(404, error_code=404, 
+                error_msg='No member with the given name exists in the database.'
+            )
+
+        return record, 200
+
+    @marshal_with(record_fields)
     def put(self, user_id):
         """Handles PUT requests at the specified URL and returns status
         code 200 if an already existing member has been overwritten 
@@ -125,9 +199,27 @@ class MemberRecord(Resource):
         Along with the status code, return a JSON response with details
         about the new member (which has either replaced or have been newly
         created).
-        """
-        pass
 
+        Also, if the required data is not passed in a specified format, return
+        a 400 error, along with some information about the problem with the given
+        data as an error message.
+        """
+        member_args = record_parser_for_post_put.parse_args(strict=True)
+
+        record = db.session.query(Member).filter_by(_id=user_id).first()
+
+        if record:
+            record.name = member_args['name']
+            record.email = member_args['email']
+            db.session.commit()
+            return record, 200
+        else:
+            new_member = Member(_id=user_id, name=member_args['name'], email=member_args['email'])
+            db.session.add(new_member)
+            db.session.commit()
+            return new_member, 201
+
+    @marshal_with(record_fields)
     def patch(self, user_id):
         """Handles PATCH requests for the specified resource and returns
         status code 200 to signal that an existing member's information
@@ -135,29 +227,60 @@ class MemberRecord(Resource):
 
         Abort handling of the request if no existing member is found with
         the given ID and thus, return 404 along with an error message.
-        """
-        pass
 
-    def delete(self):
+        Also, if the given data contains any invalid fields, return
+        a 400 error, along with some information about the invalid arguments
+        in the error message.
+        """
+        updated_member_args = record_parser_for_patch.parse_args(strict=True)
+
+        record = db.session.query(Member).filter_by(_id=user_id).first()
+        
+        if not record:
+            abort(404, error_code=404, 
+                error_msg='Member cannot be updated because no member with given ID exists in the database'
+            )
+        
+        if updated_member_args['name']:
+            record.name = updated_member_args['name']
+        if updated_member_args['email']:
+            record.email = updated_member_args['email']
+        
+        db.session.commit()
+
+        return record, 200
+
+    def delete(self, user_id):
         """Handles DELETE requests to the specified resource and returns
         status code 204 to signal that the member with the given ID has been
         successfully removed from the database.
 
         No additional content/data (like JSON) will be sent back to the user.
 
-        Abort handling of the request if no member with the given ID is found
+        Abort handling the request if no member with the given ID is found
         and return error code 404 with a message.
         """
-        pass 
+        record_to_delete = db.session.query(Member).filter_by(_id=user_id).first()
+
+        if not record_to_delete:
+            abort(404, error_code=404, 
+                error_msg='Cannot delete because member with the given ID doesn\'t exist'
+            )
+        
+        db.session.delete(record_to_delete)
+        db.session.commit()
+
+        return '', 204
 
 
 # Adding member table related resource to the API and specifying their endpoints
-api.add_resource(Member, '/members/all', endpoint='get_all_members')
-api.add_resource(Member, '/members/<string:user_name>', endpoint='get_member_by_name')
-api.add_resource(Member, '/members/new', endpoint='create_new_member')
-api.add_resource(Member, '/members/<int:user_id>/update', endpoint='update_existing_member')
-api.add_resource(Member, '/members/<int:user_id>/overwrite', endpoint='overwrite_existing_member')
-api.add_resource(Member, '/members/<int:user_id>/delete', endpoint='delete_existing_member')
+api.add_resource(MemberEntity, '/members/all', endpoint='get_all_members')
+api.add_resource(MemberEntity, '/members/new', endpoint='create_new_member')
+api.add_resource(MemberEntity, '/members/delete', endpoint='delete_all_members')
+api.add_resource(MemberRecord, '/members/<string:user_name>', endpoint='get_member_by_name')
+api.add_resource(MemberRecord, '/members/<int:user_id>/replace', endpoint='overwrite_existing_member')
+api.add_resource(MemberRecord, '/members/<int:user_id>/update', endpoint='update_existing_member')
+api.add_resource(MemberRecord, '/members/<int:user_id>/delete', endpoint='delete_existing_member')
 
 if __name__ == '__main__':
     app.run(debug=True)

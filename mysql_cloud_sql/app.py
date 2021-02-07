@@ -240,7 +240,7 @@ class MemberRecord(Resource):
 
         return record, 200
 
-    def delete(self):
+    def delete(self, user_id):
         """Handles DELETE requests to the specified resource and returns
         status code 204 to signal that the member with the given ID has been
         successfully removed from the database.
@@ -250,7 +250,17 @@ class MemberRecord(Resource):
         Abort handling the request if no member with the given ID is found
         and return error code 404 with a message.
         """
-        pass 
+        record_to_delete = db.session.query(Member).filter_by(_id=user_id).first()
+
+        if not record_to_delete:
+            abort(404, error_code=404, 
+                error_msg='Cannot delete because member with the given ID doesn\'t exist'
+            )
+        
+        db.session.delete(record_to_delete)
+        db.session.commit()
+
+        return '', 204
 
 
 # Adding member table related resource to the API and specifying their endpoints

@@ -1,0 +1,12 @@
+# Template YAML file used for purpose of storing a reference to the
+# format used to deploy the app to App Engine. 
+# This file uses placeholders to hide sensitive data for security reasons.
+
+runtime: python38
+
+env_variables:
+  DB_USER: {DB_USER}
+  DB_USER_PWD: {DB_USER_PWD}
+  DB_PUBLIC_IP_ADDRESS: {DB_PUBLIC_IP_ADDRESS}
+  CONNECTION_NAME: {CONNECTION_NAME}
+  DATABASE_NAME: {DATABASE_NAME}

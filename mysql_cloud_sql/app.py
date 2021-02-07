@@ -1,13 +1,14 @@
 import os
 
-from dotenv import load_dotenv
+# from dotenv import load_dotenv
 from flask import Flask
 from flask_restful import Api, Resource, reqparse, abort, fields, marshal_with
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.automap import automap_base
 
+# Not used in deployment
 # Configure dotenv to read environment variables from .env file
-load_dotenv(verbose=True)
+# load_dotenv(verbose=True)
 
 # Initializing Flask app
 app = Flask(__name__)

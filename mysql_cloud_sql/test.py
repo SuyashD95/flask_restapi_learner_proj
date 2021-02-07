@@ -42,3 +42,21 @@ valid_data = {'name': 'Mickey Mouse', 'email': 'mickeymouse@disney.com'}
 response = requests.post(f'{BASE_URL}{endpoint}', data=valid_data)
 print(pprint_json(response))
 input()
+
+# Testing PUT request of MemberEntity
+endpoint = 'members/20/replace'
+# Bad Request (400) Error
+illegal_data = {'nam3': 'Illegal parameter name', 'email': 'This is valid'}
+response = requests.put(f'{BASE_URL}{endpoint}', data=illegal_data)
+print(pprint_json(response))
+input()
+# Resource Created (201) Success 
+new_data = {'name': 'Mouse Mini', 'email': 'minimouse@email.com'}
+response = requests.put(f'{BASE_URL}{endpoint}', data=new_data)
+print(pprint_json(response))
+input()
+# OK (200) Success 
+updated_data = {'name': 'Mini', 'email': 'minimouse@disney.com'}
+response = requests.put(f'{BASE_URL}{endpoint}', data=updated_data)
+print(pprint_json(response))
+input()

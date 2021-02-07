@@ -135,7 +135,14 @@ class MemberRecord(Resource):
         Abort handling GET requests and return 404 if no member with
         the specified name is found along with an error message.
         """
-        pass
+        record = db.session.query(Member).filter_by(name=user_name).first()
+
+        if not record:
+            abort(404, error_code=404, 
+                error_msg='No member with the given name exists in the database.'
+            )
+
+        return record, 200
 
     def put(self, user_id):
         """Handles PUT requests at the specified URL and returns status

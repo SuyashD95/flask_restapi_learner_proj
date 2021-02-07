@@ -39,11 +39,11 @@ Member = Base.classes.members
 #       an existing database. To run queries, we need to use the
 #       query(mapped_table) on the db.session object.
 
-# Parse requests for valid JSON objects required to pass data related
-# to a single Member record.
-record_parser = reqparse.RequestParser()
-record_parser.add_argument('name', type=str, help='Required. Name of the new member', required=True)
-record_parser.add_argument('email', type=str, help='Required. Email ID of the new member', required=True)
+# Parse the arguments sent to POST & PUT requests for valid JSON objects
+# required to pass data related to a single Member record.
+record_parser_for_post_put = reqparse.RequestParser()
+record_parser_for_post_put.add_argument('name', type=str, help='Required. Name of the new member', required=True)
+record_parser_for_post_put.add_argument('email', type=str, help='Required. Email ID of the new member', required=True)
 
 # Resource Fields to define the format to serialize a member object into JSON
 record_fields = {
@@ -103,7 +103,7 @@ class MemberEntity(Resource):
         Aborts the request if a member with the given name or email ID already exists
         and thus, return a 409 error with a message.
         """
-        new_member_args = record_parser.parse_args(strict=True)
+        new_member_args = record_parser_for_post_put.parse_args(strict=True)
 
         name_record = db.session.query(Member).filter_by(name=new_member_args['name']).first()
         email_record = db.session.query(Member).filter_by(name=new_member_args['email']).first()
@@ -171,6 +171,7 @@ class MemberRecord(Resource):
 
         return record, 200
 
+    @marshal_with(record_fields)
     def put(self, user_id):
         """Handles PUT requests at the specified URL and returns status
         code 200 if an already existing member has been overwritten 
@@ -180,8 +181,24 @@ class MemberRecord(Resource):
         Along with the status code, return a JSON response with details
         about the new member (which has either replaced or have been newly
         created).
+
+        Also, if the required data is not passed in a specified format, return
+        a 400 error, along with some information about the problem with the given
+        data as an error message.
         """
-        pass
+        member_args = record_parser_for_post_put.parse_args(strict=True)
+
+        record = db.session.query(Member).filter_by(_id=user_id).first()
+
+        if record:
+            record.name = member_args['name']
+            record.email = member_args['email']
+            return record, 200
+        else:
+            new_member = Member(_id=user_id, name=member_args['name'], email=member_args['email'])
+            db.session.add(new_member)
+            db.session.commit()
+            return new_member, 201
 
     def patch(self, user_id):
         """Handles PATCH requests for the specified resource and returns

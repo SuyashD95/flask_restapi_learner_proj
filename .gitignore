@@ -1,6 +1,9 @@
 # Code Editor-specific files/directories
 .vscode/
 
+# YAML files used by Google App Engine
+mysql_cloud_sql/app.yaml
+
 # Database files
 *.db
 

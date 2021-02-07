@@ -45,6 +45,12 @@ record_parser_for_post_put = reqparse.RequestParser()
 record_parser_for_post_put.add_argument('name', type=str, help='Required. Name of the new member', required=True)
 record_parser_for_post_put.add_argument('email', type=str, help='Required. Email ID of the new member', required=True)
 
+# Parse the arguments sent to PATCH requests for valid JSON objects
+# required to pass data related to a single Member record.
+record_parser_for_patch = reqparse.RequestParser()
+record_parser_for_patch.add_argument('name', type=str, help='Name of the new member')
+record_parser_for_patch.add_argument('email', type=str, help='Email ID of the new member')
+
 # Resource Fields to define the format to serialize a member object into JSON
 record_fields = {
     '_id': fields.Integer,
@@ -133,8 +139,10 @@ class MemberEntity(Resource):
 class MemberRecord(Resource):
     """Resource class to handle requests made to a specific record
     of the 'members' table of the database at the specified URLs: 
-        1. /members/{user_id}
-        2. /members/{user_name}
+        1. /members/{user_name}
+        2. /members/{user_id}/replace
+        3. /members/{user_id}/update
+        4. /members/{user_id}/delete
     
     Handles the following requests at the following endpoints:
         
@@ -193,6 +201,7 @@ class MemberRecord(Resource):
         if record:
             record.name = member_args['name']
             record.email = member_args['email']
+            db.session.commit()
             return record, 200
         else:
             new_member = Member(_id=user_id, name=member_args['name'], email=member_args['email'])
@@ -200,6 +209,7 @@ class MemberRecord(Resource):
             db.session.commit()
             return new_member, 201
 
+    @marshal_with(record_fields)
     def patch(self, user_id):
         """Handles PATCH requests for the specified resource and returns
         status code 200 to signal that an existing member's information
@@ -207,8 +217,28 @@ class MemberRecord(Resource):
 
         Abort handling of the request if no existing member is found with
         the given ID and thus, return 404 along with an error message.
+
+        Also, if the given data contains any invalid fields, return
+        a 400 error, along with some information about the invalid arguments
+        in the error message.
         """
-        pass
+        updated_member_args = record_parser_for_patch.parse_args(strict=True)
+
+        record = db.session.query(Member).filter_by(_id=user_id).first()
+        
+        if not record:
+            abort(404, error_code=404, 
+                error_msg='Member cannot be updated because no member with given ID exists in the database'
+            )
+        
+        if updated_member_args['name']:
+            record.name = updated_member_args['name']
+        if updated_member_args['email']:
+            record.email = updated_member_args['email']
+        
+        db.session.commit()
+
+        return record, 200
 
     def delete(self):
         """Handles DELETE requests to the specified resource and returns

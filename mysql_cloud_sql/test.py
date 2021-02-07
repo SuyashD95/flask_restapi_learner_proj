@@ -15,7 +15,7 @@ input()
 
 # Testing GET request of MemberRecord
 # Success
-endpoint = 'members/Vishy'
+endpoint = 'members/Vishy Anand'
 response = requests.get(f'{BASE_URL}{endpoint}')
 print(pprint_json(response))
 input()

@@ -2,7 +2,7 @@ import os
 
 from dotenv import load_dotenv
 from flask import Flask
-from flask_restful import Api, Resource, abort
+from flask_restful import Api, Resource, abort, fields, marshal_with
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.ext.automap import automap_base
 
@@ -39,6 +39,12 @@ Member = Base.classes.members
 #       an existing database. To run queries, we need to use the
 #       query(mapped_table) on the db.session object.
 
+# Resource Fields to define the format to serialize a member object into JSON
+record_fields = {
+    '_id': fields.Integer,
+    'name': fields.String,
+    'email': fields.String
+}
 
 class MemberEntity(Resource):
     """Resource class to handle requests made to the 'members' table 
@@ -119,6 +125,7 @@ class MemberRecord(Resource):
         4. DELETE - Delete an existing member.
     """
 
+    @marshal_with(record_fields)
     def get(self, user_name):
         """Handles GET requests to the resource and return HTTP code 200
         on a successful completion of a request.

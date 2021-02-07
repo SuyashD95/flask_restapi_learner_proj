@@ -2,10 +2,55 @@ import requests
 
 from json import dumps
 
+BASE_URL = 'http://127.0.0.1:5000/'
+
 # Lambda function to prettify JSON response
 pprint_json = lambda response, indent=2: dumps(response.json(), indent=indent)
 
-BASE_URL = 'http://127.0.0.1:5000/'
+
+# =====================================================================
+def populate_db_with_mock_data():
+    """A utility function meant to be run to populate the Member database
+    with an initial set of values to ensure that the unit tests could be run
+    on an already existing database.
+
+    This function makes POST requests to populate the database with mock data. 
+    """
+    records = [
+        {
+            'name': 'Suyash',
+            'email': 'suyashdayal@gmail.com'
+        },
+        {
+            'name': 'Sonal Dayal',
+            'email': 'Email@gmail.com'
+        },
+        {
+            'name': 'Joe',
+            'email': 'joe@gmail.com'
+        },
+        {
+            'name': 'Vishy Anand',
+            'email': 'thevish@chess.com'
+        }
+    ]
+
+    print('Populating the database with mock data...')
+    for record in records:
+        requests.post(f'{BASE_URL}members/new', data=record)
+    
+    print('The database has been successfully populated with mock data.')
+
+
+# NOTE: Run it after executing the DELETE request on the Members table which will
+#       delete all the existing members in the database.
+#
+#       To populate database with data, uncomment the following lines of code and
+#       make sure to terminate the program while the program waits for input to
+#       avoid running the unit test code.
+# populate_db_with_mock_data()
+# input()
+# =====================================================================
 
 # Testing GET request of MemberEntity
 endpoint = 'members/all'
@@ -78,4 +123,27 @@ input()
 patch_data = {'name': 'Mini Mouse'}
 response = requests.patch(f'{BASE_URL}{endpoint}', data=patch_data)
 print(pprint_json(response))
+input()
+
+# Testing DELETE request of MemberRecord
+# Not Found (404) Error
+unreachable_endpoint = '/members/100/delete'
+response = requests.delete(f'{BASE_URL}{unreachable_endpoint}')
+print(f'Response Code: {response.status_code}')
+input()
+# No Content (204) Success
+endpoint = 'members/20/delete'
+response = requests.delete(f'{BASE_URL}{endpoint}')
+print(f'Response Code: {response.status_code}')
+input()
+
+# Testing DELETE request of MemberRecord
+# No Content (204) Success
+endpoint = 'members/delete'
+response = requests.delete(f'{BASE_URL}{endpoint}')
+print(f'Response Code: {response.status_code}')
+input()
+# Not Found (404) Error
+response = requests.delete(f'{BASE_URL}{endpoint}')
+print(f'Response Code: {response.status_code}')
 input()

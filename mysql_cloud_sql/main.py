@@ -284,4 +284,4 @@ api.add_resource(MemberRecord, '/members/<int:user_id>/update', endpoint='update
 api.add_resource(MemberRecord, '/members/<int:user_id>/delete', endpoint='delete_existing_member')
 
 if __name__ == '__main__':
-    app.run()
+    app.run(debug=True)

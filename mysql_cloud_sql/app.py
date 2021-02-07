@@ -133,7 +133,17 @@ class MemberEntity(Resource):
         Abort handling the request if no member exists in the database
         and return error code 404 with a message.
         """
-        pass
+        records_to_delete = db.session.query(Member).all()
+
+        if not records_to_delete:
+            abort(404, error_code=404, 
+                error_msg='Cannot delete because no members exist in the database'
+            )
+        
+        db.session.query(Member).delete()
+        db.session.commit()
+
+        return '', 204
 
 
 class MemberRecord(Resource):

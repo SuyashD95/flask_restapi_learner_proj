@@ -24,3 +24,21 @@ endpoint = 'members/Unknown'
 response = requests.get(f'{BASE_URL}{endpoint}')
 print(pprint_json(response))
 input()
+
+# Testing POST request of MemberEntity
+endpoint = 'members/new'
+# Bad Request (400) Error
+illegal_data = {'name': 'Illegal parameter name'}
+response = requests.post(f'{BASE_URL}{endpoint}', data=illegal_data)
+print(pprint_json(response))
+input()
+# Conflict (409) Error
+existing_data = {'name': 'Vishy Anand', 'email': 'mickeymouse@disney.com'}
+response = requests.post(f'{BASE_URL}{endpoint}', data=existing_data)
+print(pprint_json(response))
+input()
+# Success
+valid_data = {'name': 'Mickey Mouse', 'email': 'mickeymouse@disney.com'}
+response = requests.post(f'{BASE_URL}{endpoint}', data=valid_data)
+print(pprint_json(response))
+input()
